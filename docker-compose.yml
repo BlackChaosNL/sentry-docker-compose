@@ -2,7 +2,7 @@ version: '3'
 services:
   sentry:
     container_name: sentry
-    image: sentry
+    image: getsentry/sentry
     env_file:
       - .env
     ports:
@@ -10,24 +10,33 @@ services:
     depends_on:
       - db
       - redis
+    links:
+      - db
+      - redis
     tty: true
     stdin_open: true
   cron:
     container_name: sentry-cron
-    image: sentry
+    image: getsentry/sentry
     command: run cron
     env_file:
       - .env
     depends_on:
       - db
       - redis
+    links:
+      - db
+      - redis
   worker:
     container_name: sentry-worker
-    image: sentry
+    image: getsentry/sentry
     command: run worker
     env_file:
       - .env
     depends_on:
+      - db
+      - redis
+    links:
       - db
       - redis
   redis:
@@ -35,8 +44,6 @@ services:
     image: redis
     volumes:
       - redis-data:/data
-    ports:
-      - '6379:6379'
   db:
     container_name: sentry-postgres
     image: postgres
@@ -45,8 +52,7 @@ services:
       POSTGRES_PASSWORD: secret
     volumes:
       - pg-data:/var/lib/postgresql/data
-    ports:
-      - '5432:5432'
+
 volumes:
   redis-data:
   pg-data:
